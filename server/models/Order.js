@@ -10,6 +10,7 @@ const OrderSchema = new mongoose.Schema({
       image: String,
       price: String,
       quantity: Number,
+      brand: String,
     },
   ],
   addressInfo: {
@@ -28,6 +29,7 @@ const OrderSchema = new mongoose.Schema({
   orderUpdateDate: Date,
   paymentId: String,
   payerId: String,
+
 });
 
 module.exports = mongoose.model("Order", OrderSchema);

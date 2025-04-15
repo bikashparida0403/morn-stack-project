@@ -2,11 +2,19 @@
 import AuthLayout from "./components/auth/layout";
 import AuthLogin from "./pages/auth/login";
 import AuthRegister from "./pages/auth/register";
+import SellerRegister from "./pages/auth/sellerreg";
 import AdminLayout from "./components/admin-view/layout";
 import AdminDashboard from "./pages/admin-view/dashboard";
 import AdminProducts from "./pages/admin-view/products";
 import AdminOrders from "./pages/admin-view/orders";
 import AdminFeatures from "./pages/admin-view/features";
+
+import AppAdminDashboard from "./pages/appadmin-view/dashboard";
+import AppAdminProducts from "./pages/appadmin-view/products";
+import AppAdminOrders from "./pages/appadmin-view/orders";
+import AppAdminFeatures from "./pages/appadmin-view/features";
+import AppAdminLayout from "./components/appadmin-view/layout";
+
 import ShoppingLayout from "./components/shopping-view/layout";
 import NotFound from "./pages/not-found";
 import ShoppingHome from "./pages/shopping-view/home";
@@ -19,7 +27,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./store/auth-slice";
 import { Skeleton } from "@/components/ui/skeleton";
-import PaypalReturnPage from "./pages/shopping-view/paypal-return";
+import StripeReturnPage from "./pages/shopping-view/paypal-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
 
@@ -27,8 +35,11 @@ function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
   );
+   console.log("hello");
+   //console.log(seller.email);
   const dispatch = useDispatch();
 
+  
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
@@ -56,6 +67,20 @@ function App() {
         >
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
+          <Route path="sellerregister" element={<SellerRegister />} />
+        </Route>
+        <Route
+          path="/appadmin"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+              <AppAdminLayout />
+            </CheckAuth>
+          }
+        >
+          <Route path="dashboard" element={<AppAdminDashboard />} />
+          <Route path="products" element={<AppAdminProducts />} />
+          <Route path="orders" element={<AppAdminOrders />} />
+          <Route path="features" element={<AppAdminFeatures />} />
         </Route>
         <Route
           path="/admin"
@@ -82,7 +107,7 @@ function App() {
           <Route path="listing" element={<ShoppingListing />} />
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
-          <Route path="paypal-return" element={<PaypalReturnPage />} />
+          <Route path="paypal-return" element={<StripeReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
         </Route>

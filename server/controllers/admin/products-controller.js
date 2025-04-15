@@ -34,6 +34,7 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sellerid
     } = req.body;
 
     console.log(averageReview, "averageReview");
@@ -48,6 +49,7 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      sellerid
     });
 
     await newlyCreatedProduct.save();

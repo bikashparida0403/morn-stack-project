@@ -4,95 +4,99 @@ import { useDispatch, useSelector } from "react-redux";
 import UserCartItemsContent from "@/components/shopping-view/cart-items-content";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { createNewOrder } from "@/store/shop/order-slice";
-import { Navigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
 import { useToast } from "@/components/ui/use-toast";
+import { createNewOrder } from "@/store/shop/order-slice";
+
+const stripePromise = loadStripe("");
 
 function ShoppingCheckout() {
   const { cartItems } = useSelector((state) => state.shopCart);
   const { user } = useSelector((state) => state.auth);
-  const { approvalURL } = useSelector((state) => state.shopOrder);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);
   const [isPaymentStart, setIsPaymemntStart] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("stripe");
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  console.log(currentSelectedAddress, "cartItems");
-
   const totalCartAmount =
-    cartItems && cartItems.items && cartItems.items.length > 0
+    cartItems?.items?.length > 0
       ? cartItems.items.reduce(
           (sum, currentItem) =>
             sum +
             (currentItem?.salePrice > 0
               ? currentItem?.salePrice
-              : currentItem?.price) *
-              currentItem?.quantity,
+              : currentItem?.price) * currentItem?.quantity,
           0
         )
       : 0;
 
-  function handleInitiatePaypalPayment() {
-    if (cartItems.length === 0) {
-      toast({
+  async function handleCheckout() {
+    if (!cartItems?.items?.length) {
+      return toast({
         title: "Your cart is empty. Please add items to proceed",
         variant: "destructive",
       });
-
-      return;
     }
-    if (currentSelectedAddress === null) {
-      toast({
+
+    if (!currentSelectedAddress) {
+      return toast({
         title: "Please select one address to proceed.",
         variant: "destructive",
       });
-
-      return;
     }
 
-    const orderData = {
-      userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        address: currentSelectedAddress?.address,
-        city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        notes: currentSelectedAddress?.notes,
-      },
-      orderStatus: "pending",
-      paymentMethod: "paypal",
-      paymentStatus: "pending",
-      totalAmount: totalCartAmount,
-      orderDate: new Date(),
-      orderUpdateDate: new Date(),
-      paymentId: "",
-      payerId: "",
-    };
+    setIsPaymemntStart(true);
 
-    dispatch(createNewOrder(orderData)).then((data) => {
-      console.log(data, "sangam");
-      if (data?.payload?.success) {
-        setIsPaymemntStart(true);
+const isStripe = paymentMethod === "stripe";
+
+const orderData = {
+  userId: user?.id,
+  cartId: cartItems?._id,
+  cartItems: cartItems.items.map((item) => ({
+    productId: item?.productId,
+    title: item?.title,
+    image: item?.image,
+    price: item?.salePrice > 0 ? item?.salePrice : item?.price,
+    quantity: item?.quantity,
+    brand: item?.brand,
+  })),
+  addressInfo: {
+    addressId: currentSelectedAddress?._id,
+    address: currentSelectedAddress?.address,
+    city: currentSelectedAddress?.city,
+    pincode: currentSelectedAddress?.pincode,
+    phone: currentSelectedAddress?.phone,
+    notes: currentSelectedAddress?.notes,
+  },
+  orderStatus: isStripe ? "confirmed" : "confirmed", // Stripe needs confirmation after payment
+  paymentMethod: paymentMethod,
+  paymentStatus: isStripe ? "pending" : "unpaid", // unpaid for COD
+  totalAmount: totalCartAmount,
+  orderDate: new Date(),
+  orderUpdateDate: new Date(),
+  paymentId: "",   // Stripe will fill this after success
+  payerId: "",     // Same as above
+};
+
+    try {
+      const result = await dispatch(createNewOrder(orderData)).unwrap();
+
+      if (paymentMethod === "cod") {
+        toast({ title: "Order placed with Cash on Delivery!", variant: "default" });
+        window.location.href = "/shop/payment-success";
+      } else if (paymentMethod === "stripe" && result?.sessionId) {
+        const stripe = await stripePromise;
+        await stripe.redirectToCheckout({ sessionId: result.sessionId });
       } else {
-        setIsPaymemntStart(false);
+        toast({ title: "Failed to initiate checkout", variant: "destructive" });
       }
-    });
-  }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Checkout error occurred", variant: "destructive" });
+    }
 
-  if (approvalURL) {
-    window.location.href = approvalURL;
+    setIsPaymemntStart(false);
   }
 
   return (
@@ -106,11 +110,36 @@ function ShoppingCheckout() {
           setCurrentSelectedAddress={setCurrentSelectedAddress}
         />
         <div className="flex flex-col gap-4">
-          {cartItems && cartItems.items && cartItems.items.length > 0
-            ? cartItems.items.map((item) => (
-                <UserCartItemsContent cartItem={item} />
-              ))
-            : null}
+          {cartItems?.items?.map((item) => (
+            <UserCartItemsContent key={item._id} cartItem={item} />
+          ))}
+
+          <div className="space-y-4 mt-4">
+            <div className="font-semibold">Select Payment Method</div>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="stripe"
+                  checked={paymentMethod === "stripe"}
+                  onChange={() => setPaymentMethod("stripe")}
+                />
+                Stripe
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="cod"
+                  checked={paymentMethod === "cod"}
+                  onChange={() => setPaymentMethod("cod")}
+                />
+                Cash on Delivery
+              </label>
+            </div>
+          </div>
+
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
@@ -118,10 +147,10 @@ function ShoppingCheckout() {
             </div>
           </div>
           <div className="mt-4 w-full">
-            <Button onClick={handleInitiatePaypalPayment} className="w-full">
+            <Button onClick={handleCheckout} className="w-full">
               {isPaymentStart
-                ? "Processing Paypal Payment..."
-                : "Checkout with Paypal"}
+                ? "Processing Payment..."
+                : `Checkout with ${paymentMethod === "stripe" ? "Stripe" : "Cash on Delivery"}`}
             </Button>
           </div>
         </div>

@@ -11,15 +11,21 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 const adminSidebarMenuItems = [
 
   {
+    id: "dashboard",
+    label: "Dashboard",
+    path: "/appadmin/dashboard",
+    icon: <LayoutDashboard />,
+  },
+  {
     id: "products",
     label: "Products",
-    path: "/admin/products",
+    path: "/appadmin/products",
     icon: <ShoppingBasket />,
   },
   {
     id: "orders",
     label: "Orders",
-    path: "/admin/orders",
+    path: "/appadmin/orders",
     icon: <BadgeCheck />,
   },
 ];
@@ -70,7 +76,7 @@ function AdminSideBar({ open, setOpen }) {
           className="flex cursor-pointer items-center gap-2"
         >
           <ChartNoAxesCombined size={30} />
-          <h1 className="text-2xl font-extrabold">seller Panel</h1>
+          <h1 className="text-2xl font-extrabold">Admin Panel</h1>
         </div>
         <MenuItems />
       </aside>

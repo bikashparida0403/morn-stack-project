@@ -9,7 +9,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/use-toast";
-import { addProductFormElements } from "@/config";
+import { getAddProductFormElements } from "@/config";
 import {
   addNewProduct,
   deleteProduct,
@@ -29,6 +29,7 @@ const initialFormData = {
   salePrice: "",
   totalStock: "",
   averageReview: 0,
+  sellerid: null,
 };
 
 function AdminProducts() {
@@ -39,7 +40,7 @@ function AdminProducts() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
-
+  const { user } = useSelector((state) => state.auth);
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -66,6 +67,7 @@ function AdminProducts() {
       : dispatch(
           addNewProduct({
             ...formData,
+            sellerid: user?.id,
             image: uploadedImageUrl,
           })
         ).then((data) => {
@@ -110,17 +112,22 @@ function AdminProducts() {
         </Button>
       </div>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
-              <AdminProductTile
-                setFormData={setFormData}
-                setOpenCreateProductsDialog={setOpenCreateProductsDialog}
-                setCurrentEditedId={setCurrentEditedId}
-                product={productItem}
-                handleDelete={handleDelete}
-              />
-            ))
-          : null}
+        
+      {productList && productList.length > 0
+  ? productList
+      .filter(productItem => productItem.brand === user?.userName)
+      .map((productItem, i) => (
+        <AdminProductTile
+          key={i}
+          setFormData={setFormData}
+          setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+          setCurrentEditedId={setCurrentEditedId}
+          product={productItem}
+          handleDelete={handleDelete}
+        />
+      ))
+  : null}
+
       </div>
       <Sheet
         open={openCreateProductsDialog}
@@ -151,7 +158,7 @@ function AdminProducts() {
               formData={formData}
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Edit" : "Add"}
-              formControls={addProductFormElements}
+              formControls={getAddProductFormElements(user)}
               isBtnDisabled={!isFormValid()}
             />
           </div>

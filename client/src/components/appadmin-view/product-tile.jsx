@@ -4,9 +4,7 @@ import { Card, CardContent, CardFooter } from "../ui/card";
 function AdminProductTile({
   product,
   setFormData,
-  setOpenCreateProductsDialog,
   setCurrentEditedId,
-  handleDelete,
 }) {
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -32,19 +30,11 @@ function AdminProductTile({
               <span className="text-lg font-bold">${product?.salePrice}</span>
             ) : null}
           </div>
+          <span className="text-lg font-bold">seller : {product?.brand}</span><br />
           <span className="text-lg font-bold">Stock : {product?.totalStock}</span>
         </CardContent>
         <CardFooter className="flex justify-between items-center">
-          <Button
-            onClick={() => {
-              setOpenCreateProductsDialog(true);
-              setCurrentEditedId(product?._id);
-              setFormData(product);
-            }}
-          >
-            Edit
-          </Button>
-          <Button onClick={() => handleDelete(product?._id)}>Delete</Button>
+
         </CardFooter>
       </div>
     </Card>

@@ -1,4 +1,4 @@
-import { Salad, LogOut, ShoppingCart, UserCog } from "lucide-react";
+import { Salad, LogOut, ShoppingCart, UserCog, Store } from "lucide-react";
 import {
   Link,
   useLocation,
@@ -83,6 +83,16 @@ function HeaderRightContent() {
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
+     <Sheet>
+  <Link to="/auth/sellerregister" className="flex items-center gap-3">
+    <Button
+      variant="outline"
+      className="flex items-center gap-2 px-6 py-3 text-lg font-semibold border border-gray-300 rounded-lg transition-all duration-300 ">
+      <Store className="h-6 w-6 text-gray-700 transition-colors duration-300" />
+      <span>Be a Seller</span>
+    </Button>
+  </Link>
+</Sheet>
       <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
         <Button
           onClick={() => setOpenCartSheet(true)}

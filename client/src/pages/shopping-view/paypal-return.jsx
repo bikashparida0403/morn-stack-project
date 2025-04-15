@@ -2,35 +2,51 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { capturePayment } from "@/store/shop/order-slice";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-function PaypalReturnPage() {
+function StripeReturnPage() {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
-  const paymentId = params.get("paymentId");
-  const payerId = params.get("PayerID");
+  const sessionId = params.get("session_id"); // Stripe session_id
 
   useEffect(() => {
-    if (paymentId && payerId) {
-      const orderId = JSON.parse(sessionStorage.getItem("currentOrderId"));
+    if (sessionId) {
+      const orderId = sessionStorage.getItem("currentOrderId");
 
-      dispatch(capturePayment({ paymentId, payerId, orderId })).then((data) => {
-        if (data?.payload?.success) {
+      if (!orderId) {
+        navigate("/shop/payment-failed");
+        return;
+      }
+
+      dispatch(capturePayment({ sessionId, orderId: JSON.parse(orderId) }))
+        .then((data) => {
           sessionStorage.removeItem("currentOrderId");
-          window.location.href = "/shop/payment-success";
-        }
-      });
+
+          if (data?.payload?.success) {
+            navigate("/shop/payment-success");
+          } else {
+            navigate("/shop/payment-failed");
+          }
+        })
+        .catch(() => {
+          navigate("/shop/payment-failed");
+        });
     }
-  }, [paymentId, payerId, dispatch]);
+  }, [sessionId, dispatch, navigate]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Processing Payment...Please wait!</CardTitle>
-      </CardHeader>
-    </Card>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <Card className="p-8 text-center shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">
+            Confirming your Stripe payment...
+          </CardTitle>
+        </CardHeader>
+      </Card>
+    </div>
   );
 }
 
-export default PaypalReturnPage;
+export default StripeReturnPage;

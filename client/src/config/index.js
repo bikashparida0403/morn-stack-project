@@ -39,7 +39,7 @@ export const loginFormControls = [
   },
 ];
 
-export const addProductFormElements = [
+export const getAddProductFormElements = (user) => [
   {
     label: "Title",
     name: "title",
@@ -54,28 +54,24 @@ export const addProductFormElements = [
     placeholder: "Enter product description",
   },
   {
+    label: "Shop",
+    name: "brand",
+    componentType: "select",
+    options: [
+      { id: user?.userName || "" , label: user?.userName || "" },
+    ],
+  },
+  {
     label: "Category",
     name: "category",
     componentType: "select",
     options: [
-      { id: "men", label: "Men" },
-      { id: "women", label: "Women" },
-      { id: "kids", label: "Kids" },
-      { id: "accessories", label: "Accessories" },
-      { id: "footwear", label: "Footwear" },
-    ],
-  },
-  {
-    label: "Brand",
-    name: "brand",
-    componentType: "select",
-    options: [
-      { id: "nike", label: "Nike" },
-      { id: "adidas", label: "Adidas" },
-      { id: "puma", label: "Puma" },
-      { id: "levi", label: "Levi's" },
-      { id: "zara", label: "Zara" },
-      { id: "h&m", label: "H&M" },
+      { id: "Chips & Crisps", label: "Chips & Crisps" },
+      { id: "Namkeen & Mixtures", label: "Namkeen & Mixtures" },
+      { id: "Roasted Snacks", label: "Roasted Snacks" },
+      { id: "Baked Goods", label: "Baked Goods" },
+      { id: "Pickles & Chutneys", label: "Pickles & Chutneys" },
+      { id: "Dips & Sauces", label: "Dips & Sauces" },
     ],
   },
   {
@@ -102,11 +98,7 @@ export const addProductFormElements = [
 ];
 
 export const shoppingViewHeaderMenuItems = [
-  {
-    id: "search",
-    label: "Search",
-    path: "/shop/search",
-  },
+
 ];
 
  export const categoryOptionsMap = {
@@ -115,33 +107,23 @@ export const shoppingViewHeaderMenuItems = [
   kids: "Kids",
   accessories: "Accessories",
   footwear: "Footwear",
-}; 
+};  
 
  export const brandOptionsMap = {
-  nike: "Nike",
-  adidas: "Adidas",
-  puma: "Puma",
-  levi: "Levi",
-  zara: "Zara",
-  "h&m": "H&M",
+
 }; 
 
 export const filterOptions = {
   category: [
-    { id: "men", label: "Men" },
-    { id: "women", label: "Women" },
-    { id: "kids", label: "Kids" },
-    { id: "accessories", label: "Accessories" },
-    { id: "footwear", label: "Footwear" },
+    { id: "Chips & Crisps", label: "Chips & Crisps" },
+    { id: "Namkeen & Mixtures", label: "Namkeen & Mixtures" },
+    { id: "Roasted Snacks", label: "Roasted Snacks" },
+    { id: "Baked Goods", label: "Baked Goods" },
+    { id: "Pickles & Chutneys", label: "Pickles & Chutneys" },
+    { id: "Dips & Sauces", label: "Dips & Sauces" },
+    
   ],
-  brand: [
-    { id: "nike", label: "Nike" },
-    { id: "adidas", label: "Adidas" },
-    { id: "puma", label: "Puma" },
-    { id: "levi", label: "Levi's" },
-    { id: "zara", label: "Zara" },
-    { id: "h&m", label: "H&M" },
-  ],
+
 }; 
 
 export const sortOptions = [
@@ -185,5 +167,43 @@ export const addressFormControls = [
     name: "notes",
     componentType: "textarea",
     placeholder: "Enter any additional notes",
+  },
+];
+
+export const registesellerrFormControls = [
+  {
+    name: "userName",
+    label: "Shop Name",
+    placeholder: "Enter your shop name",
+    componentType: "input",
+    type: "text",
+  },
+  {
+    name: "email",
+    label: "Email",
+    placeholder: "Enter your email",
+    componentType: "input",
+    type: "email",
+  },
+  {
+    name: "password",
+    label: "Password",
+    placeholder: "Enter your password",
+    componentType: "input",
+    type: "password",
+  },
+  {
+    name: "phone",
+    label: "phone",
+    placeholder: "Enter your number",
+    componentType: "input",
+    type: "number",
+  },
+  {
+    name: "address",
+    label: "address",
+    placeholder: "Enter your password",
+    componentType: "input",
+    type: "text",
   },
 ];

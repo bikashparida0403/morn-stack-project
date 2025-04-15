@@ -1,9 +1,13 @@
-const paypal = require("../../helpers/paypal");
+ const stripe = require("stripe")("sk_test_51OTjRXSIxqi220Sy6VDFwgMnjylgB4L5ald2Hqg0gHRleFPrHTOKbbqreQOnjLtkT1cf9PAgizaLweCLmSDIJ1md00DSRgSEgJ"); // Your secret key
 const Order = require("../../models/Order");
 const Cart = require("../../models/Cart");
 const Product = require("../../models/Product");
 
+
+console.log(stripe);  // Check that stripe is correctly initialized
+
 const createOrder = async (req, res) => {
+  console.log('Creating order...'); // Log the start of order creation
   try {
     const {
       userId,
@@ -15,82 +19,67 @@ const createOrder = async (req, res) => {
       totalAmount,
       orderDate,
       orderUpdateDate,
-      paymentId,
-      payerId,
       cartId,
     } = req.body;
 
-    const create_payment_json = {
-      intent: "sale",
-      payer: {
-        payment_method: "paypal",
-      },
-      redirect_urls: {
-        return_url: "http://localhost:5173/shop/paypal-return",
-        cancel_url: "http://localhost:5173/shop/paypal-cancel",
-      },
-      transactions: [
-        {
-          item_list: {
-            items: cartItems.map((item) => ({
-              name: item.title,
-              sku: item.productId,
-              price: item.price.toFixed(2),
-              currency: "USD",
-              quantity: item.quantity,
-            })),
+    console.log('Received order data:', req.body);  // Log the incoming request body
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: cartItems.map((item) => ({
+        price_data: {
+          currency: "inr",
+          product_data: {
+            name: item.title,
           },
-          amount: {
-            currency: "USD",
-            total: totalAmount.toFixed(2),
-          },
-          description: "description",
+          unit_amount: Math.round(item.price * 100),
         },
-      ],
-    };
+        quantity: item.quantity,
+      })),
+      success_url: `http://localhost:5173/shop/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/shop/payment-cancel`,
+    });
 
-    paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
-      if (error) {
-        console.log(error);
+    console.log('Stripe session created:', session); // Log the session data for debugging
 
-        return res.status(500).json({
-          success: false,
-          message: "Error while creating paypal payment",
-        });
-      } else {
-        const newlyCreatedOrder = new Order({
-          userId,
-          cartId,
-          cartItems,
-          addressInfo,
-          orderStatus,
-          paymentMethod,
-          paymentStatus,
-          totalAmount,
-          orderDate,
-          orderUpdateDate,
-          paymentId,
-          payerId,
-        });
+    const newOrder = new Order({
+      userId,
+      cartItems,
+      addressInfo,
+      orderStatus,
+      paymentMethod,
+      paymentStatus,
+      totalAmount,
+      orderDate,
+      orderUpdateDate,
+      cartId,
+      paymentId: session.id,
+    });
 
-        await newlyCreatedOrder.save();
+    let orders = await newOrder.save();
+    for (let item of orders.cartItems) {
+      let product = await Product.findById(item.productId);
 
-        const approvalURL = paymentInfo.links.find(
-          (link) => link.rel === "approval_url"
-        ).href;
+      product.totalStock -= item.quantity;
 
-        res.status(201).json({
-          success: true,
-          approvalURL,
-          orderId: newlyCreatedOrder._id,
-        });
-      }
+      await product.save();
+    }
+
+    console.log('Order saved to database:', newOrder); // Log the order save confirmation
+    
+
+    res.status(201).json({
+      success: true,
+      sessionId: session.id,
+      orderId: newOrder._id,
+      url: session.url, // Redirect user to this
     });
   } catch (e) {
-    console.log(e);
+    console.error('Error creating order:', e); // Log detailed error
     res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message: "Something went wrong during order creation.",
     });
   }
 };

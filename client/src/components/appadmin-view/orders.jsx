@@ -61,7 +61,8 @@ function AdminOrdersView() {
           </TableHeader>
           <TableBody>
           {orderList && orderList.length > 0
-  ? orderList.map((orderItem, i) => (       //.filter(orderItem => orderItem.cartItems.brand === user?.userName)
+  ? orderList
+      .map((orderItem, i) => (
                   <TableRow key={i}>
                     <TableCell>{orderItem?._id}</TableCell>
                     <TableCell>{orderItem?.orderDate.split("T")[0]}</TableCell>
